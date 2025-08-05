@@ -11,4 +11,13 @@ video {
   border-radius: 10px;
   background: #000;
 }
-st
+#qualityIndicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 30px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
