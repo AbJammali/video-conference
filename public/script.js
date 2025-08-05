@@ -33,6 +33,7 @@ function init() {
   updateRoomInfo();
   updateUserDisplay();
   connectToRoom();
+  handleOrientationChange();
 }
 
 function setupEventListeners() {
@@ -290,10 +291,10 @@ function isIOS() {
 }
 
 async function handleIOSScreenShare() {
-  showStatus('Screen sharing is not supported on iOS devices.', false); // Don't show reconnect button
-  setTimeout(() => {
+  showStatus('Screen sharing is not supported on iOS devices. Please use a desktop browser for screen sharing.', false);
+ setTimeout(() => {
     hideStatus();
-  }, 5000); // Hide after 5 seconds
+  }, 5000);
 }
 
 async function handleScreenStream(screenStream) {
@@ -337,7 +338,21 @@ async function stopScreenShare() {
   screenShareBtn.innerHTML = '<i class="fas fa-desktop"></i> Share Screen';
 }
 
-
+function handleOrientationChange() {
+  window.addEventListener('orientationchange', () => {
+    // Force a reflow to maintain video dimensions
+    const videos = document.querySelectorAll('video');
+    videos.forEach(video => {
+      video.style.width = '100%';
+      video.style.height = '100%';
+    });
+    
+    // Optional: Add a small delay to ensure proper resizing
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+  });
+}
 // Chat functionality
 function toggleChat() {
   chatContainer.classList.toggle('hidden');
@@ -498,5 +513,3 @@ function cleanupPeerConnection() {
   
   dataChannel = null;
 }
-
-
