@@ -82,6 +82,9 @@ async function connectToRoom() {
       video: true, 
       audio: true 
     });
+    
+    // Set the stream ID to include the username
+    localStream.id = `${currentUser}-${Date.now()}`;
     localVideo.srcObject = localStream;
     
     // Join the room
@@ -141,7 +144,13 @@ function handleTrackEvent(event) {
   const remoteVideoWrapper = document.querySelector('.video-wrapper:last-child');
   const remoteNameDisplay = document.createElement('div');
   remoteNameDisplay.className = 'user-name-display remote-name';
-  remoteNameDisplay.textContent = event.streams[0].id.split(' ')[0]; // Use stream ID or find better way to get remote user name
+  
+  // Get the username from the stream ID or use the currentUser variable
+  const streamId = event.streams[0].id;
+  const userName = streamId.includes(currentUser) ? currentUser : 
+                  (streamId.includes('default') ? 'Anonymous' : streamId);
+  
+  remoteNameDisplay.textContent = userName;
   remoteVideoWrapper.appendChild(remoteNameDisplay);
 }
 
