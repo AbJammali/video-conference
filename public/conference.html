@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Enhanced Video Call</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Enhanced Video Call</h2>
+      <div id="roomInfo">
+        <span id="roomName">Room: Loading...</span>
+        <span id="participantCount">0 participants</span>
+      </div>
+    </div>
+
+    <div class="video-container">
+      <div class="video-wrapper">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <div class="video-controls">
+          <button id="muteAudio"><i class="fas fa-microphone"></i></button>
+          <button id="muteVideo"><i class="fas fa-video"></i></button>
+        </div>
+      </div>
+      <div class="video-wrapper">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div class="remote-video-info"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="screenShare"><i class="fas fa-desktop"></i> Share Screen</button>
+      <button id="toggleChat"><i class="fas fa-comment"></i> Chat</button>
+      <button id="endCall"><i class="fas fa-phone-slash"></i> End Call</button>
+    </div>
+
+    <div class="chat-container hidden">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type your message...">
+        <button id="sendMessage"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+
+    <div id="qualityIndicator" title="Call Quality">
+      <span class="icon">📶</span>
+      <span class="text">Connecting...</span>
+    </div>
+
+    <div id="connectionStatus" class="hidden">
+      <div class="status-message"></div>
+      <button id="reconnectButton" class="hidden">Reconnect</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/script.js"></script>
+</body>
+</html>
