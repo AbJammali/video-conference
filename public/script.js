@@ -290,7 +290,10 @@ function isIOS() {
 }
 
 async function handleIOSScreenShare() {
-  showStatus('Screen sharing is only supported with a desktop browser only.', true);
+  showStatus('Screen sharing is not supported on iOS devices.', false); // Don't show reconnect button
+  setTimeout(() => {
+    hideStatus();
+  }, 5000); // Hide after 5 seconds
 }
 
 async function handleScreenStream(screenStream) {
@@ -495,4 +498,5 @@ function cleanupPeerConnection() {
   
   dataChannel = null;
 }
+
 
