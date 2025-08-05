@@ -1,61 +1,246 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Enhanced Video Call</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h2>Enhanced Video Call</h2>
-      <div id="roomInfo">
-        <span id="roomName">Room: Loading...</span>
-        <span id="participantCount">0 participants</span>
-      </div>
-    </div>
+:root {
+  --primary-color: #4a6fa5;
+  --danger-color: #e74c3c;
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --dark-bg: #111;
+  --light-text: #fff;
+  --dark-text: #333;
+  --chat-bg: #1e1e1e;
+}
 
-    <div class="video-container">
-      <div class="video-wrapper">
-        <video id="localVideo" autoplay muted playsinline></video>
-        <div class="video-controls">
-          <button id="muteAudio"><i class="fas fa-microphone"></i></button>
-          <button id="muteVideo"><i class="fas fa-video"></i></button>
-        </div>
-      </div>
-      <div class="video-wrapper">
-        <video id="remoteVideo" autoplay playsinline></video>
-        <div class="remote-video-info"></div>
-      </div>
-    </div>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--dark-bg);
+  color: var(--light-text);
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-    <div class="controls">
-      <button id="screenShare"><i class="fas fa-desktop"></i> Share Screen</button>
-      <button id="toggleChat"><i class="fas fa-comment"></i> Chat</button>
-      <button id="endCall"><i class="fas fa-phone-slash"></i> End Call</button>
-    </div>
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
 
-    <div class="chat-container hidden">
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input">
-        <input type="text" id="chatInput" placeholder="Type your message...">
-        <button id="sendMessage"><i class="fas fa-paper-plane"></i></button>
-      </div>
-    </div>
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
 
-    <div id="qualityIndicator" title="Call Quality">
-      <span class="icon">📶</span>
-      <span class="text">Connecting...</span>
-    </div>
+#roomInfo {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #aaa;
+}
 
-    <div id="connectionStatus" class="hidden">
-      <div class="status-message"></div>
-      <button id="reconnectButton" class="hidden">Reconnect</button>
-    </div>
-  </div>
+.video-container {
+  display: flex;
+  flex-grow: 1;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+}
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/script.js"></script>
-</body>
-</html>
+.video-wrapper {
+  position: relative;
+  width: 45%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: #000;
+  object-fit: cover;
+}
+
+.video-controls {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.video-controls button {
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-controls button:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.controls button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+}
+
+.controls button:hover {
+  opacity: 0.9;
+}
+
+#endCall {
+  background: var(--danger-color);
+}
+
+#qualityIndicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-container {
+  position: fixed;
+  right: 20px;
+  bottom: 80px;
+  width: 300px;
+  height: 400px;
+  background: var(--chat-bg);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.chat-container.hidden {
+  display: none;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.chat-input {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #444;
+}
+
+.chat-input input {
+  flex-grow: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+#connectionStatus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  text-align: center;
+  z-index: 1000;
+}
+
+#connectionStatus.hidden {
+  display: none;
+}
+
+.status-message {
+  margin-bottom: 10px;
+}
+
+#reconnectButton {
+  padding: 8px 16px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Message styles */
+.message {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 5px;
+  background: #2c3e50;
+}
+
+.message.sent {
+  background: var(--primary-color);
+  align-self: flex-end;
+}
+
+.message.received {
+  background: #34495e;
+  align-self: flex-start;
+}
+
+.message-info {
+  font-size: 0.8em;
+  color: #bbb;
+  margin-bottom: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .video-container {
+    flex-direction: column;
+  }
+  
+  .video-wrapper {
+    width: 100%;
+    height: 50%;
+  }
+
+  .chat-container {
+    width: 250px;
+    height: 300px;
+  }
+}
