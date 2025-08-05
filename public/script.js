@@ -121,6 +121,7 @@ function handleICECandidateEvent(event) {
 
 function handleTrackEvent(event) {
   remoteVideo.srcObject = event.streams[0];
+  hideStatus();
 }
 
 function handleICEConnectionStateChange() {
@@ -186,8 +187,10 @@ socket.on('signal', async (data) => {
         user: currentUser,
         target: data.user
       });
+      hideStatus(); // Hide status when answer is successfully created
     } else if (data.type === 'answer') {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+      hideStatus(); // Hide status when answer is successfully processed
     } else if (data.type === 'ice') {
       try {
         await peerConnection.addIceCandidate(data.candidate);
