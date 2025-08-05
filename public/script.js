@@ -290,7 +290,7 @@ function isIOS() {
 }
 
 async function handleIOSScreenShare() {
-  showStatus('Screen sharing is not supported with a desktop browser only.', true);
+  showStatus('Screen sharing is only supported with a desktop browser only.', true);
 }
 
 async function handleScreenStream(screenStream) {
@@ -495,3 +495,4 @@ function cleanupPeerConnection() {
   
   dataChannel = null;
 }
+
