@@ -54,10 +54,28 @@ body {
 
 .video-wrapper {
   position: relative;
-  width: 45%;
+  width: 45%; /* Keep this for desktop */
   height: 100%;
   display: flex;
   flex-direction: column;
+  /* Add these new properties */
+  aspect-ratio: 16/9; /* Standard video aspect ratio */
+  max-height: 50vh; /* Maximum height */
+}
+
+/* Add this media query for mobile devices */
+@media (max-width: 768px) {
+  .video-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .video-wrapper {
+    width: 100%;
+    height: auto;
+    max-height: 40vh; /* Adjust based on your needs */
+    aspect-ratio: 16/9;
+  }
 }
 
 video {
@@ -65,7 +83,11 @@ video {
   height: 100%;
   border-radius: 10px;
   background: #000;
-  object-fit: cover;
+  object-fit: contain; /* Changed from 'cover' to 'contain' */
+  /* Add these properties */
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .video-controls {
