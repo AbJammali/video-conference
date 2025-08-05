@@ -46,3 +46,39 @@ socket.on('signal', async data => {
     }
   }
 });
+const qualityIndicator = document.getElementById('qualityIndicator');
+
+// Monitor call stats every 2 seconds
+setInterval(async () => {
+  if (!peerConnection) return;
+
+  const stats = await peerConnection.getStats(null);
+  let rtt = null;
+
+  stats.forEach(report => {
+    if (report.type === "remote-inbound-rtp" && report.kind === "video") {
+      if (report.roundTripTime) {
+        rtt = report.roundTripTime * 1000; // convert to ms
+      }
+    }
+  });
+
+  if (rtt !== null) {
+    updateCallQualityUI(rtt);
+  }
+}, 2000);
+
+// Update icon based on RTT
+function updateCallQualityUI(rtt) {
+  if (rtt < 150) {
+    qualityIndicator.textContent = '📶🟢';
+    qualityIndicator.title = `Good (${rtt.toFixed(0)}ms RTT)`;
+  } else if (rtt < 300) {
+    qualityIndicator.textContent = '📶🟡';
+    qualityIndicator.title = `Fair (${rtt.toFixed(0)}ms RTT)`;
+  } else {
+    qualityIndicator.textContent = '📶🔴';
+    qualityIndicator.title = `Poor (${rtt.toFixed(0)}ms RTT)`;
+  }
+}
+
