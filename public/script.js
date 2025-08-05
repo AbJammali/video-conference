@@ -259,36 +259,22 @@ function toggleVideo() {
     muteVideoBtn.title = isDisabled ? 'Disable video' : 'Enable video';
   }
 }
-// Disable screen share button on iOS
-document.addEventListener('DOMContentLoaded', () => {
-  if (isIOS()) {
-    screenShareBtn.disabled = true;
-    screenShareBtn.title = 'Screen sharing is not supported on iOS browsers';
-  }
-});
 
 async function toggleScreenShare() {
   try {
     if (!screenSharingActive) {
       if (isIOS()) {
         try {
-          const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
-            video: true,
-            audio: false 
-          });
+          const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
           await handleScreenStream(screenStream);
-          return;
         } catch (error) {
           console.log('Standard screen share failed, trying iOS workaround');
           return handleIOSScreenShare();
         }
+      } else {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+        await handleScreenStream(screenStream);
       }
-
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
-        video: true,
-        audio: false 
-      });
-      await handleScreenStream(screenStream);
     } else {
       await stopScreenShare();
     }
@@ -304,37 +290,45 @@ function isIOS() {
 }
 
 async function handleIOSScreenShare() {
-  showStatus(
-    'Screen sharing is not supported in iOS browsers. Please use a desktop browser or our native app to share your screen.',
-    true
-  );
+  showStatus('Screen sharing is not supported with a desktop browser only.', true);
 }
 
 async function handleScreenStream(screenStream) {
   const videoTrack = screenStream.getVideoTracks()[0];
-  const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
-  await sender.replaceTrack(videoTrack);
+  const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+  if (sender) await sender.replaceTrack(videoTrack);
 
-  localStream.getVideoTracks().forEach(track => track.stop());
-  localStream.removeTrack(localStream.getVideoTracks()[0]);
+  const oldTracks = localStream.getVideoTracks();
+  oldTracks.forEach(track => {
+    localStream.removeTrack(track);
+    track.stop();
+  });
+
   localStream.addTrack(videoTrack);
-  localVideo.srcObject = localStream;
+  localVideo.srcObject = new MediaStream([videoTrack]);
 
   screenSharingActive = true;
   screenShareBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Sharing';
-  videoTrack.onended = () => toggleScreenShare();
+
+  videoTrack.onended = () => {
+    if (screenSharingActive) toggleScreenShare();
+  };
 }
 
 async function stopScreenShare() {
   const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
   const cameraTrack = cameraStream.getVideoTracks()[0];
-  const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
-  await sender.replaceTrack(cameraTrack);
+  const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+  if (sender) await sender.replaceTrack(cameraTrack);
 
-  localStream.getVideoTracks().forEach(track => track.stop());
-  localStream.removeTrack(localStream.getVideoTracks()[0]);
+  const oldTracks = localStream.getVideoTracks();
+  oldTracks.forEach(track => {
+    localStream.removeTrack(track);
+    track.stop();
+  });
+
   localStream.addTrack(cameraTrack);
-  localVideo.srcObject = localStream;
+  localVideo.srcObject = new MediaStream([cameraTrack]);
 
   screenSharingActive = false;
   screenShareBtn.innerHTML = '<i class="fas fa-desktop"></i> Share Screen';
