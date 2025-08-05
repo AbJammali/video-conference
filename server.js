@@ -19,18 +19,21 @@ const rooms = new Map();
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Route for the homepage
+// Route for the landing page
 app.get('/', (req, res) => {
-  // Generate a random room ID and redirect to it
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Route for creating new rooms - redirects to a random room
+app.get('/new', (req, res) => {
   const roomId = crypto.randomBytes(4).toString('hex');
   res.redirect(`/${roomId}`);
 });
 
 // Route for specific rooms
 app.get('/:room', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'conference.html'));
 });
-
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log(`New connection: ${socket.id}`);
