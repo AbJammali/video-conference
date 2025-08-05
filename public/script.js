@@ -1,84 +1,61 @@
-const socket = io();
-const room = window.location.pathname.split('/').pop();
-socket.emit('join', room);
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Enhanced Video Call</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Enhanced Video Call</h2>
+      <div id="roomInfo">
+        <span id="roomName">Room: Loading...</span>
+        <span id="participantCount">0 participants</span>
+      </div>
+    </div>
 
-const peerConnection = new RTCPeerConnection({
-  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-});
+    <div class="video-container">
+      <div class="video-wrapper">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <div class="video-controls">
+          <button id="muteAudio"><i class="fas fa-microphone"></i></button>
+          <button id="muteVideo"><i class="fas fa-video"></i></button>
+        </div>
+      </div>
+      <div class="video-wrapper">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div class="remote-video-info"></div>
+      </div>
+    </div>
 
-const localVideo = document.getElementById('localVideo');
-const remoteVideo = document.getElementById('remoteVideo');
+    <div class="controls">
+      <button id="screenShare"><i class="fas fa-desktop"></i> Share Screen</button>
+      <button id="toggleChat"><i class="fas fa-comment"></i> Chat</button>
+      <button id="endCall"><i class="fas fa-phone-slash"></i> End Call</button>
+    </div>
 
-navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
-  localVideo.srcObject = stream;
-  stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
-});
+    <div class="chat-container hidden">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type your message...">
+        <button id="sendMessage"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
 
-peerConnection.ontrack = event => {
-  remoteVideo.srcObject = event.streams[0];
-};
+    <div id="qualityIndicator" title="Call Quality">
+      <span class="icon">📶</span>
+      <span class="text">Connecting...</span>
+    </div>
 
-peerConnection.onicecandidate = event => {
-  if (event.candidate) {
-    socket.emit('signal', { type: 'ice', candidate: event.candidate });
-  }
-};
+    <div id="connectionStatus" class="hidden">
+      <div class="status-message"></div>
+      <button id="reconnectButton" class="hidden">Reconnect</button>
+    </div>
+  </div>
 
-socket.on('user-connected', async () => {
-  const offer = await peerConnection.createOffer();
-  await peerConnection.setLocalDescription(offer);
-  socket.emit('signal', { type: 'offer', offer });
-});
-
-socket.on('signal', async data => {
-  if (data.type === 'offer') {
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-    socket.emit('signal', { type: 'answer', answer });
-  } else if (data.type === 'answer') {
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-  } else if (data.type === 'ice') {
-    try {
-      await peerConnection.addIceCandidate(data.candidate);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-});
-const qualityIndicator = document.getElementById('qualityIndicator');
-
-// Monitor call stats every 2 seconds
-setInterval(async () => {
-  if (!peerConnection) return;
-
-  const stats = await peerConnection.getStats(null);
-  let rtt = null;
-
-  stats.forEach(report => {
-    if (report.type === "remote-inbound-rtp" && report.kind === "video") {
-      if (report.roundTripTime) {
-        rtt = report.roundTripTime * 1000; // convert to ms
-      }
-    }
-  });
-
-  if (rtt !== null) {
-    updateCallQualityUI(rtt);
-  }
-}, 2000);
-
-// Update icon based on RTT
-function updateCallQualityUI(rtt) {
-  if (rtt < 150) {
-    qualityIndicator.textContent = '📶🟢';
-    qualityIndicator.title = `Good (${rtt.toFixed(0)}ms RTT)`;
-  } else if (rtt < 300) {
-    qualityIndicator.textContent = '📶🟡';
-    qualityIndicator.title = `Fair (${rtt.toFixed(0)}ms RTT)`;
-  } else {
-    qualityIndicator.textContent = '📶🔴';
-    qualityIndicator.title = `Poor (${rtt.toFixed(0)}ms RTT)`;
-  }
-}
-
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/script.js"></script>
+</body>
+</html>
