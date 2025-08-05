@@ -263,49 +263,85 @@ function toggleVideo() {
 async function toggleScreenShare() {
   try {
     if (!screenSharingActive) {
+      // iOS specific handling
+      if (isIOS()) {
+        // First try standard approach
+        try {
+          const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+            video: true,
+            audio: false 
+          });
+          await handleScreenStream(screenStream);
+          return;
+        } catch (error) {
+          console.log('Standard screen share failed, trying iOS workaround');
+          return handleIOSScreenShare();
+        }
+      }
+      
+      // Standard handling for other devices
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
         video: true,
         audio: false 
       });
-      
-      // Replace the video track
-      const videoTrack = screenStream.getVideoTracks()[0];
-      const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
-      await sender.replaceTrack(videoTrack);
-      
-      // Stop the old track
-      localStream.getVideoTracks().forEach(track => track.stop());
-      
-      // Update local video display
-      localStream.removeTrack(localStream.getVideoTracks()[0]);
-      localStream.addTrack(videoTrack);
-      localVideo.srcObject = localStream;
-      
-      screenSharingActive = true;
-      screenShareBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Sharing';
-      videoTrack.onended = () => toggleScreenShare();
+      await handleScreenStream(screenStream);
     } else {
-      // Switch back to camera
-      const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-      const cameraTrack = cameraStream.getVideoTracks()[0];
-      const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
-      await sender.replaceTrack(cameraTrack);
-      
-      // Stop the screen share track
-      localStream.getVideoTracks().forEach(track => track.stop());
-      
-      // Update local video display
-      localStream.removeTrack(localStream.getVideoTracks()[0]);
-      localStream.addTrack(cameraTrack);
-      localVideo.srcObject = localStream;
-      
-      screenSharingActive = false;
-      screenShareBtn.innerHTML = '<i class="fas fa-desktop"></i> Share Screen';
+      await stopScreenShare();
     }
   } catch (error) {
     console.error('Error during screen sharing:', error);
     showStatus('Error sharing screen', true);
   }
+}
+
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+async function handleIOSScreenShare() {
+  // iOS requires a different approach using Broadcast Upload Extension
+  showStatus('iOS screen sharing requires installing a helper app', true);
+  // You would typically guide users to install your native app here
+  // or use a third-party service like Twilio's screen sharing for iOS
+}
+
+async function handleScreenStream(screenStream) {
+  // Replace the video track
+  const videoTrack = screenStream.getVideoTracks()[0];
+  const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
+  await sender.replaceTrack(videoTrack);
+  
+  // Stop the old track
+  localStream.getVideoTracks().forEach(track => track.stop());
+  
+  // Update local video display
+  localStream.removeTrack(localStream.getVideoTracks()[0]);
+  localStream.addTrack(videoTrack);
+  localVideo.srcObject = localStream;
+  
+  screenSharingActive = true;
+  screenShareBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Sharing';
+  videoTrack.onended = () => toggleScreenShare();
+}
+
+async function stopScreenShare() {
+  // Switch back to camera
+  const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+  const cameraTrack = cameraStream.getVideoTracks()[0];
+  const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
+  await sender.replaceTrack(cameraTrack);
+  
+  // Stop the screen share track
+  localStream.getVideoTracks().forEach(track => track.stop());
+  
+  // Update local video display
+  localStream.removeTrack(localStream.getVideoTracks()[0]);
+  localStream.addTrack(cameraTrack);
+  localVideo.srcObject = localStream;
+  
+  screenSharingActive = false;
+  screenShareBtn.innerHTML = '<i class="fas fa-desktop"></i> Share Screen';
 }
 
 // Chat functionality
