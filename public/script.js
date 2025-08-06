@@ -6,14 +6,10 @@ let currentUser = sessionStorage.getItem('userName') || `user-${Math.floor(Math.
 let isCallActive = false;
 let screenSharingActive = false;
 let dataChannel;
-let screenStream;
-let screenShareSender = null;
 
 // DOM Elements
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
-const localScreenShare = document.getElementById('localScreenShare');
-const remoteScreenShare = document.getElementById('remoteScreenShare');
 const qualityIndicator = document.getElementById('qualityIndicator');
 const muteAudioBtn = document.getElementById('muteAudio');
 const muteVideoBtn = document.getElementById('muteVideo');
@@ -41,18 +37,23 @@ function init() {
 }
 
 function setupEventListeners() {
+  // Media control buttons
   muteAudioBtn.addEventListener('click', toggleAudio);
   muteVideoBtn.addEventListener('click', toggleVideo);
   screenShareBtn.addEventListener('click', toggleScreenShare);
   endCallBtn.addEventListener('click', endCall);
-
+  
+  // Chat controls
   toggleChatBtn.addEventListener('click', toggleChat);
   sendMessageBtn.addEventListener('click', sendMessage);
   chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
   });
-
+  
+  // Reconnection
   reconnectButton.addEventListener('click', reconnect);
+  
+  // Window events
   window.addEventListener('beforeunload', cleanupBeforeUnload);
 }
 
@@ -61,7 +62,10 @@ function updateRoomInfo() {
 }
 
 function updateUserDisplay() {
+  // Clear any existing name displays
   document.querySelectorAll('.user-name-display').forEach(el => el.remove());
+  
+  // Add name under local video
   const localVideoWrapper = document.querySelector('.video-wrapper:first-child');
   const localNameDisplay = document.createElement('div');
   localNameDisplay.className = 'user-name-display local-name';
@@ -72,10 +76,20 @@ function updateUserDisplay() {
 async function connectToRoom() {
   try {
     showStatus('Connecting to room...');
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    
+    // Get user media
+    localStream = await navigator.mediaDevices.getUserMedia({ 
+      video: true, 
+      audio: true 
+    });
+    
+    // Set the stream ID to include the username
     localStream.id = `${currentUser}-${Date.now()}`;
     localVideo.srcObject = localStream;
+    
+    // Join the room
     socket.emit('join', { room, user: currentUser });
+    
     hideStatus();
     isCallActive = true;
   } catch (error) {
@@ -87,38 +101,34 @@ async function connectToRoom() {
 function createPeerConnection() {
   const config = {
     iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' }
-      // Add TURN servers here if needed
+      { urls: 'stun:stun.l.google.com:19302' },
+      // Add your TURN servers here if available
+      // { urls: 'turn:your-turn-server.com', username: 'user', credential: 'pass' }
     ]
   };
-
+  
   peerConnection = new RTCPeerConnection(config);
-
-  // Add camera tracks
+  
+  // Add local stream tracks
   localStream.getTracks().forEach(track => {
     peerConnection.addTrack(track, localStream);
   });
-
-  // If screen is being shared, add its track too
-  if (screenStream) {
-    screenStream.getTracks().forEach(track => {
-      peerConnection.addTrack(track, screenStream);
-    });
-  }
-
+  
+  // Set up event handlers
   peerConnection.onicecandidate = handleICECandidateEvent;
   peerConnection.ontrack = handleTrackEvent;
   peerConnection.oniceconnectionstatechange = handleICEConnectionStateChange;
   peerConnection.ondatachannel = handleDataChannel;
-
+  
+  // Create data channel for chat
   dataChannel = peerConnection.createDataChannel('chat');
   setupDataChannel(dataChannel);
 }
 
 function handleICECandidateEvent(event) {
   if (event.candidate) {
-    socket.emit('signal', {
-      type: 'ice',
+    socket.emit('signal', { 
+      type: 'ice', 
       candidate: event.candidate,
       room,
       user: currentUser
@@ -127,23 +137,7 @@ function handleICECandidateEvent(event) {
 }
 
 function handleTrackEvent(event) {
-  const track = event.track;
-  const stream = event.streams[0];
-
-  if (track.kind === 'video') {
-    // Heuristic: if the track label or stream id contains "screen", treat as content
-    if (
-      track.label.toLowerCase().includes('screen') ||
-      (stream.id && stream.id.toLowerCase().includes('screen'))
-    ) {
-      // Remote screen share
-      remoteScreenShare.srcObject = stream;
-      document.querySelector('.remote-screen').style.display = 'block';
-    } else {
-      // Remote camera
-      remoteVideo.srcObject = stream;
-    }
-  }
+  remoteVideo.srcObject = event.streams[0];
   hideStatus();
 
   // Only add the remote name display if it doesn't exist
@@ -159,10 +153,9 @@ function handleTrackEvent(event) {
 
 function handleICEConnectionStateChange() {
   if (peerConnection) {
-    if (
-      peerConnection.iceConnectionState === 'disconnected' ||
-      peerConnection.iceConnectionState === 'failed'
-    ) {
+    console.log('ICE connection state:', peerConnection.iceConnectionState);
+    if (peerConnection.iceConnectionState === 'disconnected' || 
+        peerConnection.iceConnectionState === 'failed') {
       showStatus('Connection lost. Attempting to reconnect...', true);
       reconnect();
     }
@@ -178,12 +171,14 @@ function handleDataChannel(event) {
 
 function setupDataChannel(channel) {
   channel.onopen = () => {
+    // Send your name when the data channel opens
     channel.send(JSON.stringify({ type: 'name', name: currentUser }));
   };
   channel.onclose = () => console.log('Data channel closed');
   channel.onmessage = (event) => {
     const data = JSON.parse(event.data);
     if (data.type === 'name') {
+      // Update remote name display
       const remoteNameDisplay = document.querySelector('.remote-name');
       if (remoteNameDisplay) {
         remoteNameDisplay.textContent = data.name;
@@ -199,12 +194,12 @@ socket.on('user-connected', async (userId) => {
   if (userId !== currentUser) {
     showStatus(`User ${userId} connected. Setting up call...`);
     createPeerConnection();
-
+    
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
-
-    socket.emit('signal', {
-      type: 'offer',
+    
+    socket.emit('signal', { 
+      type: 'offer', 
       offer,
       room,
       user: currentUser,
@@ -215,17 +210,17 @@ socket.on('user-connected', async (userId) => {
 
 socket.on('signal', async (data) => {
   if (data.user === currentUser) return;
-
+  
   try {
     if (data.type === 'offer') {
       if (!peerConnection) createPeerConnection();
-
+      
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
-
-      socket.emit('signal', {
-        type: 'answer',
+      
+      socket.emit('signal', { 
+        type: 'answer', 
         answer,
         room,
         user: currentUser,
@@ -287,22 +282,18 @@ function toggleVideo() {
 async function toggleScreenShare() {
   try {
     if (!screenSharingActive) {
-      screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
-      const screenTrack = screenStream.getVideoTracks()[0];
-
-      // Add screen track as a new sender (do not replace camera)
-      screenShareSender = peerConnection.addTrack(screenTrack, screenStream);
-
-      // Show local screen preview
-      localScreenShare.srcObject = screenStream;
-      document.querySelector('.local-screen').style.display = 'block';
-
-      screenSharingActive = true;
-      screenShareBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Sharing';
-
-      screenTrack.onended = () => {
-        if (screenSharingActive) toggleScreenShare();
-      };
+      if (isIOS()) {
+        try {
+          const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+          await handleScreenStream(screenStream);
+        } catch (error) {
+          console.log('Standard screen share failed, trying iOS workaround');
+          return handleIOSScreenShare();
+        }
+      } else {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+        await handleScreenStream(screenStream);
+      }
     } else {
       await stopScreenShare();
     }
@@ -312,34 +303,74 @@ async function toggleScreenShare() {
   }
 }
 
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+async function handleIOSScreenShare() {
+  showStatus('Screen sharing is not supported on iOS devices. Please use a desktop browser for screen sharing.', false);
+ setTimeout(() => {
+    hideStatus();
+  }, 5000);
+}
+
+async function handleScreenStream(screenStream) {
+  const videoTrack = screenStream.getVideoTracks()[0];
+  const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+  if (sender) await sender.replaceTrack(videoTrack);
+
+  const oldTracks = localStream.getVideoTracks();
+  oldTracks.forEach(track => {
+    localStream.removeTrack(track);
+    track.stop();
+  });
+
+  localStream.addTrack(videoTrack);
+  localVideo.srcObject = new MediaStream([videoTrack]);
+
+  screenSharingActive = true;
+  screenShareBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Sharing';
+
+  videoTrack.onended = () => {
+    if (screenSharingActive) toggleScreenShare();
+  };
+}
+
 async function stopScreenShare() {
-  if (screenShareSender) {
-    peerConnection.removeTrack(screenShareSender);
-    screenShareSender = null;
-  }
-  if (screenStream) {
-    screenStream.getTracks().forEach(track => track.stop());
-    screenStream = null;
-  }
-  localScreenShare.srcObject = null;
-  document.querySelector('.local-screen').style.display = 'none';
+  const cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+  const cameraTrack = cameraStream.getVideoTracks()[0];
+  const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+  if (sender) await sender.replaceTrack(cameraTrack);
+
+  const oldTracks = localStream.getVideoTracks();
+  oldTracks.forEach(track => {
+    localStream.removeTrack(track);
+    track.stop();
+  });
+
+  localStream.addTrack(cameraTrack);
+  localVideo.srcObject = new MediaStream([cameraTrack]);
+
   screenSharingActive = false;
   screenShareBtn.innerHTML = '<i class="fas fa-desktop"></i> Share Screen';
 }
 
 function handleOrientationChange() {
   window.addEventListener('orientationchange', () => {
+    // Force a reflow to maintain video dimensions
     const videos = document.querySelectorAll('video');
     videos.forEach(video => {
       video.style.width = '100%';
       video.style.height = '100%';
     });
+    
+    // Optional: Add a small delay to ensure proper resizing
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 100);
   });
 }
-
 // Chat functionality
 function toggleChat() {
   chatContainer.classList.toggle('hidden');
@@ -353,7 +384,7 @@ function sendMessage() {
       sender: currentUser,
       timestamp: new Date().toISOString()
     };
-
+    
     dataChannel.send(JSON.stringify(messageData));
     addMessageToChat(messageData, 'sent');
     chatInput.value = '';
@@ -363,14 +394,14 @@ function sendMessage() {
 function addMessageToChat(message, type) {
   const messageElement = document.createElement('div');
   messageElement.classList.add('message', type);
-
+  
   const infoElement = document.createElement('div');
   infoElement.classList.add('message-info');
   infoElement.textContent = `${type === 'received' ? message.sender : 'You'} at ${new Date(message.timestamp).toLocaleTimeString()}`;
-
+  
   const textElement = document.createElement('div');
   textElement.textContent = message.text;
-
+  
   messageElement.appendChild(infoElement);
   messageElement.appendChild(textElement);
   chatMessages.appendChild(messageElement);
@@ -385,20 +416,20 @@ setInterval(async () => {
     const stats = await peerConnection.getStats(null);
     let rtt = null;
     let packetsLost = 0;
-    let totalPackets = 1;
+    let totalPackets = 1; // Avoid division by zero
     let jitter = 0;
 
     stats.forEach(report => {
       if (report.type === "remote-inbound-rtp" && report.kind === "video") {
         if (report.roundTripTime) {
-          rtt = report.roundTripTime * 1000;
+          rtt = report.roundTripTime * 1000; // convert to ms
         }
         if (report.packetsLost !== undefined && report.packetsReceived !== undefined) {
           packetsLost = report.packetsLost;
           totalPackets = report.packetsReceived + packetsLost;
         }
         if (report.jitter) {
-          jitter = report.jitter * 1000;
+          jitter = report.jitter * 1000; // convert to ms
         }
       }
     });
@@ -413,14 +444,14 @@ setInterval(async () => {
 function updateCallQualityUI(rtt, packetLoss, jitter) {
   const icon = qualityIndicator.querySelector('.icon');
   const text = qualityIndicator.querySelector('.text');
-
+  
   if (rtt === null) {
     icon.textContent = '📶';
     text.textContent = 'Connecting...';
     qualityIndicator.title = 'Establishing connection';
     return;
   }
-
+  
   let quality;
   if (rtt < 150 && packetLoss < 2 && jitter < 30) {
     quality = 'excellent';
@@ -435,7 +466,7 @@ function updateCallQualityUI(rtt, packetLoss, jitter) {
     icon.textContent = '📶🔴';
     text.textContent = 'Poor';
   }
-
+  
   qualityIndicator.title = `Quality: ${quality}\nRTT: ${rtt ? rtt.toFixed(0)+'ms' : 'N/A'}\nPacket loss: ${packetLoss ? packetLoss.toFixed(1)+'%' : 'N/A'}\nJitter: ${jitter ? jitter.toFixed(0)+'ms' : 'N/A'}`;
 }
 
@@ -473,14 +504,14 @@ function cleanup() {
   if (localStream) {
     localStream.getTracks().forEach(track => track.stop());
   }
-
+  
   cleanupPeerConnection();
-
+  
   if (socket) {
     socket.emit('leave', room);
     socket.disconnect();
   }
-
+  
   isCallActive = false;
 }
 
@@ -492,16 +523,11 @@ function cleanupPeerConnection() {
     peerConnection.close();
     peerConnection = null;
   }
-
+  
   if (remoteVideo.srcObject) {
     remoteVideo.srcObject.getTracks().forEach(track => track.stop());
     remoteVideo.srcObject = null;
   }
-  if (remoteScreenShare && remoteScreenShare.srcObject) {
-    remoteScreenShare.srcObject.getTracks().forEach(track => track.stop());
-    remoteScreenShare.srcObject = null;
-    document.querySelector('.remote-screen').style.display = 'none';
-  }
-
+  
   dataChannel = null;
 }
