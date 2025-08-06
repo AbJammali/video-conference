@@ -139,19 +139,16 @@ function handleICECandidateEvent(event) {
 function handleTrackEvent(event) {
   remoteVideo.srcObject = event.streams[0];
   hideStatus();
-  
-  // Add name under remote video
+
+  // Only add the remote name display if it doesn't exist
   const remoteVideoWrapper = document.querySelector('.video-wrapper:last-child');
-  const remoteNameDisplay = document.createElement('div');
-  remoteNameDisplay.className = 'user-name-display remote-name';
-  
-  // Get the username from the stream ID or use the currentUser variable
-  const streamId = event.streams[0].id;
-  const userName = streamId.includes(currentUser) ? currentUser : 
-                  (streamId.includes('default') ? 'Anonymous' : streamId);
-  
-  remoteNameDisplay.textContent = userName;
-  remoteVideoWrapper.appendChild(remoteNameDisplay);
+  let remoteNameDisplay = remoteVideoWrapper.querySelector('.remote-name');
+  if (!remoteNameDisplay) {
+    remoteNameDisplay = document.createElement('div');
+    remoteNameDisplay.className = 'user-name-display remote-name';
+    remoteNameDisplay.textContent = 'Participant'; // Placeholder until name arrives
+    remoteVideoWrapper.appendChild(remoteNameDisplay);
+  }
 }
 
 function handleICEConnectionStateChange() {
@@ -173,10 +170,22 @@ function handleDataChannel(event) {
 }
 
 function setupDataChannel(channel) {
-  channel.onopen = () => console.log('Data channel opened');
+  channel.onopen = () => {
+    // Send your name when the data channel opens
+    channel.send(JSON.stringify({ type: 'name', name: currentUser }));
+  };
   channel.onclose = () => console.log('Data channel closed');
   channel.onmessage = (event) => {
-    addMessageToChat(JSON.parse(event.data), 'received');
+    const data = JSON.parse(event.data);
+    if (data.type === 'name') {
+      // Update remote name display
+      const remoteNameDisplay = document.querySelector('.remote-name');
+      if (remoteNameDisplay) {
+        remoteNameDisplay.textContent = data.name;
+      }
+    } else if (data.text) {
+      addMessageToChat(data, 'received');
+    }
   };
 }
 
@@ -522,3 +531,4 @@ function cleanupPeerConnection() {
   
   dataChannel = null;
 }
+
