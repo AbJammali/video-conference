@@ -125,24 +125,20 @@ function updateUserDisplay() {
 async function connectToRoom() {
   try {
     showStatus('Connecting to room...');
-
-    // Get selected device IDs from sessionStorage
-    const cameraId = sessionStorage.getItem('cameraId');
-    const micId = sessionStorage.getItem('micId');
-
-    // Use selected devices if available
-    const constraints = {
-      video: cameraId ? { deviceId: { exact: cameraId } } : true,
-      audio: micId ? { deviceId: { exact: micId } } : true
-    };
-
-    localStream = await navigator.mediaDevices.getUserMedia(constraints);
-
+    
+    // Get user media
+    localStream = await navigator.mediaDevices.getUserMedia({ 
+      video: true, 
+      audio: true 
+    });
+    
+    // Set the stream ID to include the username
     localStream.id = `${currentUser}-${Date.now()}`;
     localVideo.srcObject = localStream;
-
+    
+    // Join the room
     socket.emit('join', { room, user: currentUser });
-
+    
     hideStatus();
     isCallActive = true;
   } catch (error) {
@@ -251,7 +247,7 @@ function handleICEConnectionStateChange() {
     console.log('ICE connection state:', peerConnection.iceConnectionState);
     if (peerConnection.iceConnectionState === 'disconnected' || 
         peerConnection.iceConnectionState === 'failed') {
-      showStatus('Connection lost. Attempting to reconnect...', false);
+      showStatus('Connection lost. Attempting to reconnect...', true);
       reconnect();
     }
   }
@@ -444,10 +440,15 @@ async function toggleScreenShare(withAudio = false) {
           });
           await handleScreenStream(screenStream, contentId);
         } catch (error) {
+          if (error.name === 'NotAllowedError' || error.name === 'AbortError') {
+            hideStatus();
+            return;
+          }
           console.log('Standard screen share failed, trying iOS workaround');
           return handleIOSScreenShare();
         }
       } else {
+        try {
         screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: !!withAudio });
         socket.emit('signal', {
           type: 'content-start',
@@ -456,6 +457,14 @@ async function toggleScreenShare(withAudio = false) {
           contentId
         });
         await handleScreenStream(screenStream, contentId);
+      } catch (error) {
+          if (error.name === 'NotAllowedError' || error.name === 'AbortError') {
+            // User cancelled, do not show error
+            hideStatus();
+            return;
+          }
+          showStatus('Error sharing screen', true);
+        }
       }
     } else {
       showStatus('You stopped sharing your screen.');
@@ -464,8 +473,12 @@ async function toggleScreenShare(withAudio = false) {
       console.log('[toggleScreenShare] Sending BFCP content-stop');
     }
   } catch (error) {
+    if (error.name === 'NotAllowedError' || error.name === 'AbortError') {
+      hideStatus();
+      return;
+    }
     console.error('Error during screen sharing:', error);
-    showStatus('Error sharing screen', false);
+    showStatus('Error sharing screen', true);
   }
 }
 
