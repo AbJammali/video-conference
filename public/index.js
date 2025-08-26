@@ -6,31 +6,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const deviceTestContainer = document.getElementById('deviceTestContainer');
   const closeDeviceTestBtn = document.getElementById('closeDeviceTestBtn');
   const confirmJoinBtn = document.getElementById('confirmJoinBtn');
+  const joinForm = document.getElementById('joinForm');
 
-  joinButton.addEventListener('click', () => {
-    const userName = userNameInput.value.trim();
-    const roomId = roomIdInput.value.trim();
-    if (!userName) {
-      alert('Please enter your name');
-      return;
-    }
-    if (!roomId) {
-      alert('Please enter a room ID');
-      return;
-    }
+  joinForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+  if (joinForm.checkValidity()) {
     toggleDeviceTest(true);
     enumerateDevices();
-  });
+  } else {
+    joinForm.reportValidity();
+  }
+});
 
     createButton.addEventListener('click', () => {
-  const userName = userNameInput.value.trim();
-  if (!userName) {
-    alert('Please enter your name');
-    return;
+  if (userNameInput.value.trim()) {
+    sessionStorage.setItem('userName', userNameInput.value.trim());
+    toggleDeviceTest(true);
+    enumerateDevices();
+  } else {
+    userNameInput.reportValidity();
   }
-  sessionStorage.setItem('userName', userName);
-  toggleDeviceTest(true);
-  enumerateDevices();
 });
 
   closeDeviceTestBtn.addEventListener('click', () => {
@@ -42,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userName = userNameInput.value.trim();
     const roomId = roomIdInput.value.trim();
     if (!userName) {
-      alert('Please enter your name.');
+
       return;
     }
     sessionStorage.setItem('userName', userName);
