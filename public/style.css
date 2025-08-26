@@ -365,15 +365,7 @@ input:checked+.slider:before {
   border-radius: 4px;
   margin-right: 8px;
 }
- .chat-indicator {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  background: #e74c3c;
-  border-radius: 50%;
-  margin-left: 6px;
-  vertical-align: middle;
-}
+
 #connectionStatus {
   position: fixed;
   top: 0;
