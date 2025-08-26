@@ -19,7 +19,7 @@ body {
     background-position: center top;
     background-attachment: fixed;
         }
-        .landing-container {
+.landing-container {
     display: flex;
     flex-direction: column;
     align-items: center;      /* Center horizontally */
@@ -40,20 +40,21 @@ h1 {
     text-align: center;
     margin-bottom: 30px;      /* Space below H1 */
 }
-    .form-container {
+.form-container {
     padding: 0em 4em;
     margin: 0 1em;
     position: relative;
         z-index: 1;
-        width: 100%;}
-        .landing-container {
+        width: 100%;
+    }
+.landing-container {
         max-width: 500px;
     margin: 6em auto;
     flex: 1 0 auto;
     padding-bottom: 2rem;
     width: 100%;
 }
-        .form-container  .form-group {
+.form-container .form-group {
     background: rgba(255, 255, 255, 0.15);
     display: flex
 ;
@@ -67,7 +68,7 @@ h1 {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 } 
-        .form-group span {
+.form-group span {
     flex: 1;
     -webkit-box-flex: 1;
     -moz-box-flex: 1;
@@ -78,14 +79,14 @@ h1 {
     background: transparent;
     line-height: 49px;
             text-align: right;}
-        .form-group .input-field {
+.form-group .input-field {
     flex: 4 50%;
     -webkit-box-flex: 4 50%;
     -moz-box-flex: 4 50%;
     -webkit-flex: 4 50%;
     -ms-flex: 4 50%;
 }
-        .input-field input {
+.input-field input {
     padding: 14px 0 10px 15px;
     font-size: 17px;
     font-weight: 300;
@@ -97,11 +98,12 @@ h1 {
     font-family: 'Mukta', sans-serif;
     width: 100%;
             outline: none;}
-        .input-field.double {
+.input-field.double {
     display: flex;
     gap: 10px;
 }
-  .input-field button.btn, .device-test-container button.btn {
+.input-field button.btn,
+.device-test-container button.btn {
     background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
     border: none;
     color: #fff;
@@ -123,7 +125,7 @@ h1 {
     -moz-border-radius: 35px;
     -ms-border-radius: 35px;
             -o-border-radius: 35px;}
-        button.btn:hover {
+button.btn:hover {
     transform: scale(1.03);
 }
 .container {
@@ -148,30 +150,22 @@ h1 {
   color: #aaa;
 }
 
-.video-container {
-  display: flex;
-  flex-grow: 1;
-  gap: 20px;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
-  position: relative;
-}
-
 .video-wrapper {
-  position: relative;
-  width: 45%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+    aspect-ratio: 16 / 9;
+    max-height: 60vh;
+    position: relative;
+    width: 45%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 video {
   width: 100%;
-  height: 100%;
-  border-radius: 10px;
-  background: #000;
-  object-fit: cover;
+    height: 100%;
+    border-radius: 10px;
+    background: #000;
+    object-fit: cover;
 }
 
 .video-controls {
@@ -217,6 +211,7 @@ video {
   width: 100%;
   max-width: 500px;
 }
+
 .controls-grid > button {
   padding: 8px 16px;
   background: rgba(255, 255, 255, 0.2);
@@ -328,42 +323,83 @@ input:checked+.slider:before {
     -webkit-backdrop-filter: blur(8px);
 }
 
+.chat-container.open ~ .container,
+.container.chat-open {
+  margin-right: 320px; /* Same as chat width */
+}
 .chat-container {
   position: fixed;
-  right: 20px;
-  bottom: 80px;
-  width: 300px;
-  height: 400px;
-  background: var(--chat-bg);
-  border-radius: 10px;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 320px;
+  max-width: 90vw;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--light-text);
+  box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  z-index: 1000;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-  z-index: 100;
 }
 
-.chat-container.hidden {
-  display: none;
+.chat-container.open {
+  transform: translateX(0);
 }
-
+.chat-close {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  background: transparent;
+  color: #fff;
+  font-size: 2rem;
+  border: none;
+  cursor: pointer;
+  z-index: 1100;
+}
 .chat-messages {
-  flex-grow: 1;
-  padding: 15px;
+  flex: 1;
   overflow-y: auto;
+  padding: 3em 1em 1em 1em; /* Add top padding for close button space */
+  margin-top: 0;
 }
 
 .chat-input {
   display: flex;
-  padding: 10px;
-  border-top: 1px solid #444;
+  padding: 1em;
+  border-top: 1px solid #333;
+  background: rgba(0,0,0,0.1);
 }
 
 .chat-input input {
-  flex-grow: 1;
-  padding: 8px;
+  flex: 1;
+  padding: 0.5em;
+  border-radius: 5px;
   border: none;
-  border-radius: 4px;
-  margin-right: 8px;
+  margin-right: 0.5em;
+  background: #222;
+  color: #fff;
+}
+
+.chat-input button {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5em 1em;
+  cursor: pointer;
+}
+.chat-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: #e74c3c;
+  border-radius: 50%;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 #connectionStatus {
@@ -402,7 +438,7 @@ backdrop-filter: blur(8px);
   background: rgba(255, 255, 255, 0.35);
       transform: scale(1.03);
 }
-/* Message styles */
+
 .message {
   margin-bottom: 10px;
   padding: 8px 12px;
@@ -411,12 +447,12 @@ backdrop-filter: blur(8px);
 }
 
 .message.sent {
-  background: var(--primary-color);
+  background: rgba(191, 149, 63, 0.7);
   align-self: flex-end;
 }
 
 .message.received {
-  background: #34495e;
+  background: rgba(0, 0, 0, 0.7);
   align-self: flex-start;
 }
 
@@ -425,24 +461,44 @@ backdrop-filter: blur(8px);
   color: #bbb;
   margin-bottom: 4px;
 }
-/* Add these new styles to your existing CSS */
 
-.screen-share-container {
+.video-container, .screen-share-container {
   display: flex;
-  justify-content: center;
+  flex-grow: 1;
   gap: 20px;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 20px;
+  position: relative;
+}
+.screen-share-wrapper {
+    position: relative;
+}
+.screen-share-controls {
+  position: absolute;
+  top: 0px;
+  right: 0%;
+  /*transform: translateX(-50%);*/
+  display: flex;
+  gap: 10px;
+  z-index: 10;
 }
 
-.screen-share-wrapper {
-  /*width: 45%;*/
-  /*max-width: 800px;*/
-  /*height: 300px;*/
-  background: #000;
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
-  display: none; /* Hidden by default */
+.screen-share-controls button {
+  background: rgba(0,0,0,0.7);
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen-share-controls button:hover {
+  background: rgba(0,0,0,0.9);
 }
 
 .screen-share-wrapper video {
@@ -487,8 +543,6 @@ backdrop-filter: blur(8px);
 .screen-share-wrapper::before {
   display: none; /* Remove the old pseudo-element */
 }
-
-/* Device Test Container - styled like chat container */
 
 .chat-close, .test-close {
   position: absolute;
@@ -631,7 +685,7 @@ backdrop-filter: blur(8px);
     background: rgba(255, 255, 255, 0.15);
     object-fit: cover;
 }
-/* Group icon, label, and select horizontally */
+
 .device-row {
   display: flex;
   align-items: center;
@@ -693,7 +747,7 @@ backdrop-filter: blur(8px);
 #cameraPreview[src=""] {
   opacity: 0.4;
 }
-/* Background halves inside camera preview */
+
 .camera-preview-container .half {
   position: absolute;
   inset: 0;
@@ -702,14 +756,12 @@ backdrop-filter: blur(8px);
   z-index: 1; /* under video */
 }
 
-/* Top-left diagonal */
 .camera-preview-container .top-left {
   background-image: url('/image/logo-silver.png');
   clip-path: polygon(0 0, 100% 0, 0 100%);
   background-size: contain;
 }
 
-/* Bottom-right diagonal */
 .camera-preview-container .bottom-right {
   background-image: url('/image/logo-gold.png');
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
@@ -756,11 +808,15 @@ backdrop-filter: blur(8px);
 }
   .video-container {
     flex-direction: column;
+    gap: 10px;
+    max-width: 100vw;
   }
   
   .video-wrapper {
     width: 100%;
-    height: 50%;
+    height: auto;
+    max-height: 40vh;
+    aspect-ratio: 16/9;
   }
 .screen-share-container {
     flex-direction: column;
@@ -772,8 +828,14 @@ backdrop-filter: blur(8px);
     height: 200px;
   }
   .chat-container {
-    width: 250px;
-    height: 300px;
+    width: 100vw;
+    max-width: 100vw;
+  }
+  .chat-messages {
+    padding-top: 3em; /* Ensure enough space for close button on mobile */
+  }
+  .container.chat-open {
+    margin-right: 0;
   }
 }
 @media (min-height: 429px) and (max-height: 517px) {
