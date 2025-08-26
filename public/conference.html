@@ -84,6 +84,16 @@
       <div class="status-message"></div>
       <button id="reconnectButton" class="hidden">Reconnect</button>
     </div>
+    <div id="endCallModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>End Call?</h3>
+    <p>Are you sure you want to end the call?</p>
+    <div class="modal-actions">
+      <button id="confirmEndCall" class="btn danger">Yes</button>
+      <button id="cancelEndCall" class="btn">No</button>
+    </div>
+  </div>
+</div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
