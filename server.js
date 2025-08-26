@@ -1,17 +1,11 @@
 const express = require('express');
-const https = require('https');
-const fs = require('fs');
-const options = {
-  key: fs.readFileSync('C:/cert/localhost.key', 'utf8'),
-  cert: fs.readFileSync('C:/cert/localhost.crt', 'utf8'),
-  minVersion: 'TLSv1.2' // ensures modern TLS protocols
-};
+const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const crypto = require('crypto');
 
 const app = express();
-const server = https.createServer(options, app);
+const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: "*",
