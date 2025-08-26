@@ -862,10 +862,6 @@ backdrop-filter: blur(8px);
     align-items: center;
   }
   
-  .screen-share-wrapper {
-    width: 90%;
-    height: 200px;
-  }
   .chat-container {
     width: 100vw;
     max-width: 100vw;
