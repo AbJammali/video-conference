@@ -12,24 +12,24 @@
   <div class="landing-container">
     <a class="logo"><img src="/image/logo-silver.png" alt="AJConnect logo"></a>
     <h1>Video Call App</h1>
-    <div class="form-container">
-      <div class="form-group">
-        <span class="fa fa-user" aria-hidden="true"></span>
-          <div class="input-field">
-            <input type="text" id="userName" placeholder="Enter your name">
-            </div>
-      </div>
-      <div class="form-group">
-          <span class="fa fa-person-booth" aria-hidden="true"></span>
-          <div class="input-field">
-              <input type="text" id="roomId" placeholder="Enter room ID">
-      </div>
-        </div>
-        <div class="input-field double">
-        <button type="submit" class="btn join" id="joinButton">Join Call</button>
-      <button type="button" class="btn newRoom" id="createButton">Create New Room</button>
-                </div>
+    <form id="joinForm" class="form-container">
+  <div class="form-group">
+    <span class="fa fa-user" aria-hidden="true"></span>
+    <div class="input-field">
+      <input type="text" id="userName" placeholder="Enter your name" required>
     </div>
+  </div>
+  <div class="form-group">
+    <span class="fa fa-person-booth" aria-hidden="true"></span>
+    <div class="input-field">
+      <input type="text" id="roomId" placeholder="Enter room ID" required>
+    </div>
+  </div>
+  <div class="input-field double">
+    <button type="submit" class="btn join" id="joinButton">Join Call</button>
+    <button type="button" class="btn newRoom" id="createButton">Create New Room</button>
+  </div>
+</form>
   </div>
 <div class="device-test-container hidden" id="deviceTestContainer">
   <div class="test-container">
