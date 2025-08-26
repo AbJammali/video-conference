@@ -125,20 +125,24 @@ function updateUserDisplay() {
 async function connectToRoom() {
   try {
     showStatus('Connecting to room...');
-    
-    // Get user media
-    localStream = await navigator.mediaDevices.getUserMedia({ 
-      video: true, 
-      audio: true 
-    });
-    
-    // Set the stream ID to include the username
+
+    // Get selected device IDs from sessionStorage
+    const cameraId = sessionStorage.getItem('cameraId');
+    const micId = sessionStorage.getItem('micId');
+
+    // Use selected devices if available
+    const constraints = {
+      video: cameraId ? { deviceId: { exact: cameraId } } : true,
+      audio: micId ? { deviceId: { exact: micId } } : true
+    };
+
+    localStream = await navigator.mediaDevices.getUserMedia(constraints);
+
     localStream.id = `${currentUser}-${Date.now()}`;
     localVideo.srcObject = localStream;
-    
-    // Join the room
+
     socket.emit('join', { room, user: currentUser });
-    
+
     hideStatus();
     isCallActive = true;
   } catch (error) {
