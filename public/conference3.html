@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Video Call</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <a class="logo"><img src="/image/logo-silver.png" alt="AJConnect logo"></a>
+      <div id="roomInfo">
+        <span id="roomName">Room: Loading...</span>
+        <span id="participantCount">0 participants</span>
+      </div>
+    </div>
+<div class="screen-share-container">
+  <div class="screen-share-wrapper local-screen" style="display: none;">
+  <video id="localScreenShare" autoplay muted playsinline></video>
+  <div class="screen-share-controls">
+    <button id="localScreenFullscreen" title="Fullscreen"><i class="fas fa-expand"></i></button>
+  </div>
+  <div class="screen-share-name">Your Screen</div>
+  
+</div>
+<div class="screen-share-wrapper remote-screen" style="display: none;">
+  <video id="remoteScreenShare" autoplay playsinline></video>
+  <div class="screen-share-name">Participant's Screen</div>
+  <div class="screen-share-controls">
+    <button id="remoteScreenFullscreen" title="Fullscreen"><i class="fas fa-expand"></i></button>
+  </div>
+</div>
+</div>
+    <div class="video-container">
+      <div class="video-wrapper">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <div class="video-controls">
+          <button id="muteAudio"><i class="fas fa-microphone"></i></button>
+          <button id="muteVideo"><i class="fas fa-video"></i></button>
+        </div>
+      </div>
+      <div class="video-wrapper">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div class="remote-video-info"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+  <div class="controls-grid">
+    <button id="screenShare"><i class="fas fa-desktop"></i> Share Screen</button>
+    <button id="toggleChat">
+  <i class="fas fa-comment"></i> Chat
+  <span id="chatNotification" style="display:none;" class="chat-indicator"></span>
+</button>
+    <button id="endCall"><i class="fas fa-phone-slash"></i> End Call</button>
+    <div class="controls-audio">
+      <label class="switch">
+        <input type="checkbox" name="shareAudio" id="shareAudioCheckbox">
+        <span class="slider round" id="audioSlider"></span>
+        Audio
+      </label>
+    </div>
+  </div>
+</div>
+
+    <div class="chat-container hidden">
+      <button class="chat-close" id="chatCloseBtn" aria-label="Close chat">&times;</button>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type your message...">
+        <button id="sendMessage"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+
+    <div id="qualityIndicator" title="Call Quality">
+      <span class="icon">📶</span>
+      <span class="text">Connecting...</span>
+    </div>
+
+    <div id="connectionStatus" class="hidden">
+      <div class="status-message"></div>
+      <button id="reconnectButton" class="hidden">Reconnect</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/script4.js"></script>
+</body>
+</html>
