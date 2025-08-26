@@ -1,11 +1,17 @@
 const express = require('express');
-const http = require('http');
+const https = require('https');
+const fs = require('fs');
+const options = {
+  key: fs.readFileSync('C:/cert/localhost.key', 'utf8'),
+  cert: fs.readFileSync('C:/cert/localhost.crt', 'utf8'),
+  minVersion: 'TLSv1.2' // ensures modern TLS protocols
+};
 const socketIo = require('socket.io');
 const path = require('path');
 const crypto = require('crypto');
 
 const app = express();
-const server = http.createServer(app);
+const server = https.createServer(options, app);
 const io = socketIo(server, {
   cors: {
     origin: "*",
@@ -55,7 +61,8 @@ io.on('connection', (socket) => {
       if (!rooms.has(room)) {
         rooms.set(room, {
           participants: new Map(),
-          createdAt: new Date()
+          createdAt: new Date(),
+          messages: []
         });
       }
 
@@ -83,6 +90,7 @@ io.on('connection', (socket) => {
 
       // Notify other users in the room about the new connection
       socket.to(room).emit('user-connected', user);
+      socket.emit('chat-history', roomData.messages);
 
       console.log(`User ${user} joined room ${room}`);
     } catch (error) {
@@ -142,11 +150,18 @@ io.on('connection', (socket) => {
   socket.on('chat-message', (message) => {
     if (currentRoom && currentUser) {
       const timestamp = new Date().toISOString();
-      io.to(currentRoom).emit('chat-message', {
-        text: message,
+      const msgObj = {
+        text: message.text,
         sender: currentUser,
         timestamp
-      });
+      };
+      // Save to room history
+      const roomData = rooms.get(currentRoom);
+      if (roomData) {
+        roomData.messages.push(msgObj);
+      }
+      // Broadcast to all in room
+      io.to(currentRoom).emit('chat-message', msgObj);
     }
   });
 
