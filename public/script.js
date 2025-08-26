@@ -251,7 +251,7 @@ function handleICEConnectionStateChange() {
     console.log('ICE connection state:', peerConnection.iceConnectionState);
     if (peerConnection.iceConnectionState === 'disconnected' || 
         peerConnection.iceConnectionState === 'failed') {
-      showStatus('Connection lost. Attempting to reconnect...', true);
+      showStatus('Connection lost. Attempting to reconnect...', false);
       reconnect();
     }
   }
@@ -465,7 +465,7 @@ async function toggleScreenShare(withAudio = false) {
     }
   } catch (error) {
     console.error('Error during screen sharing:', error);
-    showStatus('Error sharing screen', true);
+    showStatus('Error sharing screen', false);
   }
 }
 
