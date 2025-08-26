@@ -31,6 +31,10 @@ const connectionStatus = document.getElementById('connectionStatus');
 const reconnectButton = document.getElementById('reconnectButton');
 const chatNotification = document.getElementById('chatNotification');
 const expectingScreenShareFrom = new Map();
+const endCallModal = document.getElementById('endCallModal');
+const confirmEndCallBtn = document.getElementById('confirmEndCall');
+const cancelEndCallBtn = document.getElementById('cancelEndCall');
+
 
 // Initialize the app
 init();
@@ -757,12 +761,20 @@ function reconnect() {
   connectToRoom();
 }
 
-function endCall() {
-  if (confirm('Are you sure you want to end the call?')) {
-    cleanup();
-    window.location.href = '/';
-  }
-}
+
+endCallBtn.addEventListener('click', () => {
+  endCallModal.classList.remove('hidden');
+});
+
+confirmEndCallBtn.addEventListener('click', () => {
+  endCallModal.classList.add('hidden');
+  cleanup();
+  window.location.href = '/';
+});
+
+cancelEndCallBtn.addEventListener('click', () => {
+  endCallModal.classList.add('hidden');
+});
 
 function cleanupBeforeUnload() {
   if (isCallActive) {
